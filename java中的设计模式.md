@@ -111,3 +111,24 @@ Spring 为 Resource 接口提供了如下实现类：
 
 ### 外观模式
 1. MVC中的controller层
+   
+## spring security
+### 责任链模式
+1. 过滤器链，VirtualFilterChain类中的doFilter方法挨个执行过滤器
+- 一个请求到达后，被过滤器链中的过滤器逐个进行处理，过滤器链中的过滤器每个都具有不同的职能并且互不相扰，我们还可以通过 HttpSecurity 来动态配置过滤器链中的过滤器（即添加/删除过滤器链中的过滤器）。
+   
+### 策略模式
+1. 在SecurityContextHolder中定义登录用户信息存储的方法，就定义了三种不同的策略：
+- public static final String MODE_THREADLOCAL = "MODE_THREADLOCAL";
+- public static final String MODE_INHERITABLETHREADLOCAL = "MODE_INHERITABLETHREADLOCAL";
+- public static final String MODE_GLOBAL = "MODE_GLOBAL";
+2. session并发管理
+   
+### 代理模式
+1. Spring Security过滤器链接入Web Filter的过程，使用了Spring提供的 DelegatingFilterProxy
+
+### 适配器模式
+1. WebSecurityConfigurerAdapter，该类让两个原本不相关的 WebSecurity 和 HttpSecurity 能够在一起工作。
+
+### 建造者模式
+1. AuthenticationManagerBuilder，它想要建造的对象是 AuthenticationManager，对应的建造方法则是build
