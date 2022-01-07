@@ -132,3 +132,5 @@ Spring 为 Resource 接口提供了如下实现类：
 
 ### 建造者模式
 1. AuthenticationManagerBuilder，它想要建造的对象是 AuthenticationManager，对应的建造方法则是build
+   
+### 模板方法模式
