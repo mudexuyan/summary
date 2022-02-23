@@ -29,6 +29,26 @@ System.out.println(a.divide(b, 2, RoundingMode.HALF_UP));// 1.11
    3. queue
 2. map接口，存放键值对
    1. map
+## 集合比较
+1. comparble，对象Person实现Comparable<Person>接口，重写compareTo方法
+```
+    @Override
+    public int compareTo(Person o) {
+        return this.age-o.age;//升序；
+        //return o.age-this.age;//降序
+    }
+```
+2. comprator
+```
+Collections.sort(arrayList, new Comparator<Person>() {
+   @Override
+   public int compare(Person o1, Person o2) {
+      return o1.getAge()-o2.getAge();//升序
+   }
+});
+
+```
+
 ## list
 特征：有序，可重复
 1. arrayList，线程不安全，底层用的是object数组
@@ -45,9 +65,10 @@ System.out.println(a.divide(b, 2, RoundingMode.HALF_UP));// 1.11
 3. TreeSet，红黑树，有序，唯一
 
 ## queue
-特征：有序，可重复
+特征：有序，可重复，add，remove，element
 1. priorityQueue：优先队列，二叉堆
 2. arrayQueue，数组+双指针，可实现栈
+3. deque：双端队列；addFirst，addLast；removeFirst，removeLast；getFirst，getLast。提供push、pop用于模拟栈
 
 ## map
 特征：键有序，不可重复；值无序、可重复
@@ -69,7 +90,36 @@ System.out.println(a.divide(b, 2, RoundingMode.HALF_UP));// 1.11
    1.  concurrentHashMap（分段锁）：jdk1.8分段数组+链表/红黑树组成；分段锁保证线程安全：jdk1.7对数组分段，每把锁只锁一部分数据，多线程访问不同段的数据；jdk1.8，使用node数组+链表+红黑树，并发控制使用synchronized（悲观锁）和cas（乐观锁）操作
    2.  hashtable（全表锁）：数组+链表组成，使用synchronized保证线程安全
 
+## Collections工具
+1. 排序操作
+```
+void reverse(List list)//反转
+void shuffle(List list)//随机排序
+void sort(List list)//按自然排序的升序排序
+void sort(List list, Comparator c)//定制排序，由Comparator控制排序逻辑
+void swap(List list, int i , int j)//交换两个索引位置的元素
+void rotate(List list, int distance)//旋转。当distance为正数时，将list后distance个元素整体移到前面。当distance为负数时，将 list的前distance个元素整体移到后面
 
+```
+2. 查找替换操作
+```
+int binarySearch(List list, Object key)//对List进行二分查找，返回索引，注意List必须是有序的
+int max(Collection coll)//根据元素的自然顺序，返回最大的元素。 类比int min(Collection coll)
+int max(Collection coll, Comparator c)//根据定制排序，返回最大元素，排序规则由Comparatator类控制。类比int min(Collection coll, Comparator c)
+void fill(List list, Object obj)//用指定的元素代替指定list中的所有元素
+int frequency(Collection c, Object o)//统计元素出现次数
+int indexOfSubList(List list, List target)//统计target在list中第一次出现的索引，找不到则返回-1，类比int lastIndexOfSubList(List source, list target)
+boolean replaceAll(List list, Object oldVal, Object newVal)//用新元素替换旧元素
+
+```
+3. 同步控制 
+```
+synchronizedCollection(Collection<T>  c) //返回指定 collection 支持的同步（线程安全的）collection。
+synchronizedList(List<T> list)//返回指定列表支持的同步（线程安全的）List。
+synchronizedMap(Map<K,V> m) //返回由指定映射支持的同步（线程安全的）Map。
+synchronizedSet(Set<T> s) //返回指定 set 支持的同步（线程安全的）set。
+
+```
 # 并发
 
 # Java新特性
