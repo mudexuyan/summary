@@ -86,6 +86,18 @@ length：跳跃表长度
 分值
 对象
 
+## 整数集合intset
+```
+typedef struct intset{
+    //编码方式
+    uint32_t encoding;
+    //集合包含的元素数量
+    uint32_t length;
+    //保存元素的数组
+    int8_t contents[];
+}intset;
+```
+
 # 单机数据库的实现
 9~14
 # 多机数据库的实现
