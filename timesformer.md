@@ -102,3 +102,39 @@ pyav解码视频，pyav container.decode解码一个视频，得到解码的帧�
     optimizer.step()
    ```
 2. 保存checkpoint
+
+
+
+
+# 标签
+```
+import os
+import pandas as pd
+import csv
+mainpath = "D:\BaiduNetdiskDownload\dataSet" #文件夹目录
+
+dict={'right':0,'left':0,'shift':0,'straight':0,'press':0,
+      'bow':1,'phone':1,'drink':2,'talk':3,'faint':4}
+result = []#所有的文件
+for maindir, subdir, file_name_list in os.walk(mainpath):
+     # print("1:", maindir)  # 当前主目录
+     # print("2:", subdir)  # 当前主目录下的所有目录
+     # print("3:", file_name_list)  # 当前主目录下的所有文件
+     for filename in subdir:
+          print(filename)
+          apath = os.path.join(maindir, filename)  # 合并成一个完整路径
+          for d,s,list in os.walk(apath):
+               for file in list:
+                    label = apath+' '+str(dict[filename])
+                    result.append(label)
+     break
+print(result)
+
+with open(mainpath+'\\'+'label.csv', 'w', newline='') as csvfile:
+     writer = csv.writer(csvfile)
+     for line in result:
+          if line != '':  # 去除空行
+               writer.writerow([line])
+
+
+```
