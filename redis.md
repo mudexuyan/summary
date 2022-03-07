@@ -231,6 +231,13 @@ typedef struct quicklist {
 ## 对象空转
 1.  redis对象包含属性：type（查看类型）、encoding（查看底层结构）、ptr、refcount（计数引用）、lru（最后一次访问时间）
 
+
+
+## 列表对象
+1. ziplist，所有字符串元素长度小于64字节，且元素数量小于512
+2. linkedlist，其它情况
+  
+
 # 单机数据库的实现
 ## 数据库
 数据库由dict（保存键值对）和expires（保存过期时间）两个字典构成
