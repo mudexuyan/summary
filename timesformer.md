@@ -125,7 +125,7 @@ for maindir, subdir, file_name_list in os.walk(mainpath):
           apath = os.path.join(maindir, filename)  # 合并成一个完整路径
           for d,s,list in os.walk(apath):
                for file in list:
-                    label = apath+' '+str(dict[filename])
+                    label = apath+'/'+file+' '+str(dict[filename])
                     result.append(label)
      break
 print(result)
@@ -137,4 +137,50 @@ with open(mainpath+'\\'+'label.csv', 'w', newline='') as csvfile:
                writer.writerow([line])
 
 
+
+import os
+import pandas as pd
+import csv
+# mainpath = "D:\BaiduNetdiskDownload\dataSet" #文件夹目录
+mainpath = "drive_dataset" 
+dict={'right':0,'left':0,'shift':0,'straight':0,'press':0,
+      'bow':1,'phone':1,'drink':2,'talk':3,'faint':4}
+result = []#所有的文件
+for maindir, subdir, file_name_list in os.walk(mainpath):
+     # print("1:", maindir)  # 当前主目录
+     # print("2:", subdir)  # 当前主目录下的所有目录
+     # print("3:", file_name_list)  # 当前主目录下的所有文件
+     for filename in subdir:
+          print(filename)
+          apath = os.path.join(maindir, filename)  # 合并成一个完整路径
+          for d,s,list in os.walk(apath):
+               for file in list:
+                    label = apath+'/'+file+' '+str(dict[filename])
+                    result.append(label)
+     break
+print(result)
+
+result=pd.DataFrame(result)
+train_val = result.sample(frac=0.9,random_state=0,axis=0)
+test=result[~result.index.isin(train_val.index)]
+
+train=train_val.sample(frac=0.9,random_state=0,axis=0)
+val=train_val[~train_val.index.isin(train.index)]
+
+train.to_csv(mainpath+'/'+'train.csv',header=0,index=0)
+val.to_csv(mainpath+'/'+'val.csv',header=0,index=0)
+test.to_csv(mainpath+'/'+'test.csv',header=0,index=0)
+# with open(mainpath+'\\'+'label.csv', 'w', newline='') as csvfile:
+#      writer = csv.writer(csvfile)
+#      for line in result:
+#           if line != '':  # 去除空行
+#                writer.writerow([line])
+
+
 ```
+
+
+阿里云 http://mirrors.aliyun.com/pypi/simple/
+清华大学 https://pypi.tuna.tsinghua.edu.cn/simple/
+中国科技大学 https://pypi.mirrors.ustc.edu.cn/simple/
+豆瓣(douban) http://pypi.douban.com/simple/

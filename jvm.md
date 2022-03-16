@@ -626,9 +626,68 @@ public class Dispatch {
          3. 重偏向：当对象mark word中的epoch与klassOop.epoch不一致，表示对象可以重偏向，新线程可以CAS抢占锁
    6. 过程
       1. 第一个线程A获取同步块的对象，加意向锁。当再次访问时，不需要进行任何操作就能访问
-      2. 第二个线程B访问这个对象，A的意向锁取消，变为轻量锁。之后A再次访问需要进行CAS操作更新对象的mark word获取锁
-      3. 第三个C或者更多进程访问这个对象，A的轻量锁膨胀为重量级锁，每次访问需要切换用户态
+      2. 第二个线程B访问这个对象，对象的意向锁取消，变为轻量锁。之后A再次访问需要进行CAS操作更新对象的mark word获取锁
+      3. 第三个C或者更多进程访问这个对象，对象的轻量锁膨胀为重量级锁，每次访问需要切换用户态
    7. 锁膨胀![锁膨胀](图片/锁膨胀.png)
-   8. 
+
+## 关键字
+### synchronized
+1. https://www.cnblogs.com/three-fighter/p/14396208.html
+
+### threadLocal
+threadlocal代替session存储用户信息，空间换时间，避免将sesion对象多次传递。服务器每次分配一个线程响应浏览器一个请求，数据隔离防止分布式访问取不到数据
+1. 主内存的变量会在多个线程间共享，如果想要数据隔离，使用threadlocal生成本地副本
+2. 每个线程的threadloacl维护一个map（threadlocalMap）存储变量（如果用一个map维护所有线程的变量需要加锁），需要删除无用的映射，防止内存泄露。
+3. 具体做法
+   1. 回收键：ThreadLocalMap 的 Entry 对 ThreadLocal 的引用为弱引用，避免了 ThreadLocal 对象无法被回收的问题
+   2. 回收键为null的值：ThreadLocalMap 的 set 方法通过调用 replaceStaleEntry 方法回收键为 null 的 Entry 对象的值（即为具体实例）以及 Entry 对象本身从而防止内存泄漏
 
 
+### volatile
+1. 轻量级的同步机制
+2. 问题描述：在java内存模型中，定义了线程共享变量，存储在主内存中，线程的本地内存存储了共享变量的副本。而线程在本地内存中的修改会先存到缓存中，再从缓存更新到内存。如果更新不及时，线程取到的值就不是最新的。
+3. 解决方案：volatile关键字、加锁
+   1. 当线程修改副本并写回内存后，通过CPU总线嗅探机制告知其它线程副本已经失效，需要重新从内存中取
+   2. 总线嗅探机制：每个处理器通过监听在总线上传播的数据来检查自己的缓存值是不是过期了，如果处理器发现自己缓存行对应的内存地址修改，就会将当前处理器的缓存行设置无效状态，当处理器对这个数据进行修改操作的时候，会重新从主内存中把数据读到处理器缓存中。
+4. 可见性
+   1. volatile修饰的变量在进行写操作的时候多出一条带lock前缀的指令，这指令会让处理器做两件事：
+      1. 将当前处理器缓存行的数据写回到系统内存。
+      2. 这个写回内存的操作会使在其他CPU里缓存了该内存地址的数据无效。（总线嗅探机制）
+5. 禁止指令重排，java 编译器在生成字节码时，会在指令序列中插入内存屏障指令来禁止特定类型的处理器重排序
+6. 不保证原子性，线程不安全
+7. 参考https://zhuanlan.zhihu.com/p/138819184
+
+### 线程池
+1. 通过池化技术，减少每次获取资源的消耗。
+   1. 降低资源消耗
+   2. 提高响应速度
+   3. 提高线程的可管理性
+2. runnable接口和callable接口
+   1. runnable接口不会返回结果，不会抛出异常
+3. execute()方法和submit()方法
+   1. execute用于提交不需要返回值的任务，无法判断是否被线程池成功执行
+   2. submit，线程提交后返回Future类型的对象，通过这个对象可以判断任务是否执行成功
+4. 线程池创建方法
+   1. Executors创建线程池弊端（不建议）
+      1. FixedThreadPool和SingleThreadExecutor：允许队列长度为Integer_MAX_VALUE，可能堆积大量的请求导致OOM
+      2. CachedThreadlocal和ScheduledThreadPool：允许创建的线程数量为Integer_MAX_VALUE，可能会创建大量线程，导致OOM
+   2. 通过构造方法创建
+   3. 通过Executor框架的工具栏Executors
+      1. FixedThreadPool：返回固定线程数量的线程池。线程池中的线程数量始终不变，当有新任务提交时，线程池若有空闲线程立即执行。没有，则会被暂存在队列中，线程空闲时就处理
+      2. SingleThreadExecutor：返回只有一个线程的线程池，多个任务提交时，会被缓存在队里中，线程空闲就执行任务
+      3. CachedThreadlocal：返回一个可根据实际情况调整线程数量的线程池。有空闲线程就可以复用
+      4. ScheduledThreadPool
+   4. ThreadPoolExecutor构造函数（推荐）
+      1. 参数
+         1. corePoolSize：核心线程数定义了最小可以同时运行的线程数量
+         2. maximumPoolSize：当队列存放的任务达到队列容量的时候，可以同时运行线程数量变为最大线程数
+         3. workQueue：当新任务来的时候会先判断当前运行的线程数量是否达到核心线程数，如果达到的话，新任务就会被存放在队列中。
+         4. keepAliveTime:当线程池中的线程数量大于 corePoolSize 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等待，直到等待的时间超过了 keepAliveTime才会被回收销毁
+         5. unit : keepAliveTime 参数的时间单位。
+         6. threadFactory :executor 创建新线程的时候会用到。
+         7. handler :饱和策略。
+      2. 饱和策略，当前同时运行的线程数量达到最大线程数量并且队列也已经被放满了任务时
+         1. ThreadPoolExecutor.AbortPolicy（默认）：抛出 RejectedExecutionException来拒绝新任务的处理。
+         2. ThreadPoolExecutor.CallerRunsPolicy：调用执行自己的线程运行任务，也就是直接在调用execute方法的线程中运行(run)被拒绝的任务，如果执行程序已关闭，则会丢弃该任务。因此这种策略会降低对于新任务提交速度，影响程序的整体性能。
+         3. ThreadPoolExecutor.DiscardPolicy：不处理新任务，直接丢弃掉。
+         4. ThreadPoolExecutor.DiscardOldestPolicy：此策略将丢弃最早的未处理的任务请求。
