@@ -1,3 +1,52 @@
+# 基础
+## 多态
+1. 有继承关系
+2. 子类重写
+3. 父类引用指向子类对象
+
+## String、StringBuffer、StringBuilder 
+1. String：由final修饰不可被继承；不可改变的原因是，底层由value数组组成，没有对外提供setter方法
+2. 拼接符号+是通过StringBuilder  append方法实现的
+3. 常量池
+
+
+## 反射
+1. JDK动态代理、注解@Value
+2. 在运行时获取一个类的所有属性和方法
+3. 获取Class对象方式
+   1. 知道具体类，TargetObject.class
+   2. 插入类的全路径，Class.forName("cn.ustc.test")
+   3. 通过对象实例,  target.getClass()
+   4. 通过类加载器传入类路径，ClassLoader.loadClass("cn.ustc.test");
+4. 获取Class后，实例化对象
+   1. Class.newInstance() 
+   2. Constructor.newInstance() 
+5. 有三个类Field、Method、Constructor
+   1. Field，属性，返回域（public、protected、private）。
+   2. Method，返回方法
+   3. Constructor，返回构造器
+   4. getDeclareFields、getDeclareMethods()和 getDeclaredConstructors 方法将分别返回类中声明的全部域、方法和构造器
+
+
+## 异常
+1. error、exception均继承于Throwable
+2. error：程序无法处理，发生时程序会终止。java 虚拟机运行错误（Virtual MachineError）、虚拟机内存不够错误(OutOfMemoryError)、类定义错误（NoClassDefFoundError）等。
+3. exception：程序可以处理，可以通过catch捕获
+   1. checked exception：需要被catch、throw处理，不然无法编译
+   2. unchecked exception：runtime、
+4. try catch finally
+   1. try：捕捉异常
+   2. catch：处理异常
+   3. finally：最终都会被执行，即时try/catch有return语句。特殊情况，try或者catch中有System.exit（1）终止程序
+      1. finally不要有return 语句，避免try/catch有return语句无法被返回
+   4. try-with-resource代替try catch finally
+   5. 
+
+## I/O
+InputStream/Reader: 所有的输入流的基类，前者是字节输入流，后者是字符输入流。
+OutputStream/Writer: 所有输出流的基类，前者是字节输出流，后者是字符输出流。
+
+
 # bigDecimal
 ## 浮点数没有办法用二进制精确表示，因此存在精度丢失的风险。
 ```
@@ -79,6 +128,20 @@ Collections.sort(arrayList, new Comparator<Person>() {
 3. HashTable
 4. TreeMap，红黑树
 5. 总结1-hashMap冲突，当发生哈希冲突后，链表长度加1，当长度超过阈值时（默认为8），将链表转化为红黑树，减少搜索时间。（转换前，先检测当前数组的长度，如果当前数组的长度小于64，会先选择将数组扩容，而不是转换成红黑树）。当长度低于阈值时，会从红黑树转化成链表。
+   1. 链表升级成红黑树
+      1. 链表长度大于8(理想情况下，随机哈希码和负载因子为0.75的情况下，桶中个数出现的频率服从泊松分布,长度为8的概率为0.00000006，7的概率0.00000094，相差15倍)
+   2. 红黑树退化成链表
+      1. 扩容时，红黑树拆分成两个子红黑树，当两个树的节点数都小于等于6（树的节点所占内存是普通节点的两倍，避免反复转化）
+      2. 移除节点时，当红黑树的root为空、root->left为空、root->right为空、root->left->left为空
+   3. 扩容
+      1. 数组长度为0
+      2. 节点个数大于阈值（负载因子为0.75是折中，为1会产生大量冲突，为0.5浪费一半空间）
+      3. 发生升级，数组小于64，用扩容代替升级
+      4. &求哈希的原因：求哈希值一般用%，但是当模是2的次方时，去等于等同于按位置与。k%n=k&(n-1)
+      5. 2次方扩容的原因：与操作更快
+      6. 扩容需要rehash
+         1. 单线程没问题
+         2. 多线程成环：两个线程同时rehash，头插法
 6. 总结2-hashMap使用数组（自定义2倍扩容），不使用linkedList（不能随机访问，实现O（1）查找），不使用arrayList（固定是1.5倍扩容，原因1.5 倍可以充分利用移位操作，减少浮点数或者运算时间和运算次数）。数组扩容时，同时已插入的key会rehash到新数组下标，当哈希冲突时根据头插法插入链表中，此时可能导致前后节点的链表翻转，在多进程情况下形成环，导致死循环。
 7. HashMap与Hashtable的区别
    1. HashMap：数组+链表+红黑树，非线程安全、效率高、key和value可以是null（key为null只能有一个）。（1）不指定初始容量时，数组+链表，初始容量为16，每次扩容为之前的2倍（2）指定初始容量时，将其扩容为2的幂次方大小
@@ -86,9 +149,9 @@ Collections.sort(arrayList, new Comparator<Person>() {
 8. 实现Hashmap线程安全
    1. 不安全的原因：多线程rehash会导致环形连接死循环
    2. 使用hashtable、使用concurrenthashMap、使用collections将hashMap包装成线程安全的map
-9. concurrentHashMap与hashtable的异同：都保证线程安全
-   1.  concurrentHashMap（分段锁）：jdk1.8分段数组+链表/红黑树组成；分段锁保证线程安全：jdk1.7对数组分段，每把锁只锁一部分数据，多线程访问不同段的数据；jdk1.8，使用node数组+链表+红黑树，并发控制使用synchronized（悲观锁）和cas（乐观锁）操作
-   2.  hashtable（全表锁）：数组+链表组成，使用synchronized保证线程安全
+9.  concurrentHashMap与hashtable的异同：都保证线程安全
+   3.  concurrentHashMap（分段锁）：jdk1.8分段数组+链表/红黑树组成；分段锁保证线程安全：jdk1.7对数组分段，每把锁只锁一部分数据，多线程访问不同段的数据；jdk1.8，使用node数组+链表+红黑树，并发控制使用synchronized（悲观锁）和cas（乐观锁）操作
+   4.  hashtable（全表锁）：数组+链表组成，使用synchronized保证线程安全
 
 ## 错误机制
 1. fail-fast机制
@@ -135,6 +198,49 @@ synchronizedSet(Set<T> s) //返回指定 set 支持的同步（线程安全的�
 
 # Java新特性
 
-
+# 树
+1. 二叉查找树BST
+   1. 定义
+      1. 左子树都小于等于根节点的值
+      2. 右子树都大于等于根节点的值
+      3. 左右子树分别是二叉查找树
+   2. 查找效率logN
+   3. 缺点：当极端情况，退化成链表
+2. 平衡二叉树AVL
+   1. 定义
+      1. 二叉查找树
+      2. 左右子树高度差不超过1
+   2. 操作
+      1. 左旋
+      2. 右旋
+   3. 缺点：可能需要多次旋转保持平衡
+3. 红黑树，是二叉查找树
+   1. 定义
+      1. 每个节点要么是黑色，要么是红色
+      2. 根节点是黑色
+      3. 每个叶子节点（NIL）都是黑色
+      4. 每个红色节点的两个子节点都一定是黑色（从叶子到根的所有路径不能存在连续的红节点）
+      5. 任意一节点到叶子节到每个叶子节点的路径都包含数量相同的黑色节点
+   2. 操作
+      1. 左旋
+      2. 右旋
+      3. 变色
+      4. 注意：每次插入的节点为红色
+   3. 特点
+      1. 最多旋转三次
+4. B树，多路平衡查找树，用于磁盘存储
+   1. m阶B树定义
+      1. 每个节点最多有m-1个key，最多有m个节点，最少有[m/2]（向上取整）个子节点
+      2. 有k个子节点，有k-1个key
+5. B+树
+   1. m阶B+树定义
+      1. 根节点子树[2，m]
+      2. 非根节点最少包含 ⌈m/2⌉个元素，最多包含m个元素
+      3. 所有叶子结点都在同一层，且按关键字从小到大连接
+      4. m个关键字的节点同时有m个指针指向子树
+   2. 特点
+      1. 所有关键字都有序地放置在叶子结点的链表中(稠密索引)
+      2. 非叶子结点相当于是叶子结点的索引(稀疏索引)，叶子结点相当于是存储(关键字)数据的数据层;
+      3. 每个关键字的查询路径相同，所以查询相率很稳定
 
 

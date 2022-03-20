@@ -613,8 +613,9 @@ public class Dispatch {
          2. 代码进入同步块，如果同步对象没有被锁定（锁标志位01）
          3. 虚拟机在当前线程的栈帧中建立一个锁记录（Lock Record）空间，用于存储锁对象目前的mark word 的拷贝；
          4. 然后虚拟机使用CAS操作尝试将对象的mark word更新为指向lock record 的指针
-            1. 如果更新成功，表示线程获得这个对象的锁，并且mark word 的标志位00，表示轻量级锁定
-            2. 如果更新失败，说明锁对象被其他线程抢占了。如果出现两条以上线程争锁，轻量级锁膨胀为重量级锁，标志位10
+            1. cas操作，v地址，A（旧值：null），B（新值，自身指针id）
+            2. 如果更新成功，表示线程获得这个对象的锁，并且mark word 的标志位00，表示轻量级锁定
+            3. 如果更新失败，说明锁对象被其他线程抢占了。如果出现两条以上线程争锁，轻量级锁膨胀为重量级锁，标志位10
       4. 解锁过程
          1. 如果对象的Mark Word仍然指向线程的锁记录，那就用CAS操作把对象当前的Mark Word和线程中复制的Displaced Mark Word替换回来。假如能够成功替换，那整个同步过程就顺利完成了；如果替换失败，则说明有其他线程尝试过获取该锁，就要在释放锁的同时，唤醒被挂起的线程。
    5. 偏量级锁
@@ -667,9 +668,14 @@ threadlocal代替session存储用户信息，空间换时间，避免将sesion�
 3. execute()方法和submit()方法
    1. execute用于提交不需要返回值的任务，无法判断是否被线程池成功执行
    2. submit，线程提交后返回Future类型的对象，通过这个对象可以判断任务是否执行成功
-4. 线程池创建方法
+4. shutdown()和shutdownNow()
+   1. shutdown（）:关闭线程池，线程池的状态变为 SHUTDOWN。线程池不再接受新任务了，但是队列里的任务得执行完毕。
+      1. isShutDown：调用shutdown() 方法后返回为 true。
+      2. isTerminated 当调用 shutdown() 方法后，并且所有提交的任务完成后返回为 true
+   2. shutdownNow（） :关闭线程池，线程的状态变为 STOP。线程池会终止当前正在运行的任务，并停止处理排队的任务并返回正在等待执行的 List。
+5. 线程池创建方法
    1. Executors创建线程池弊端（不建议）
-      1. FixedThreadPool和SingleThreadExecutor：允许队列长度为Integer_MAX_VALUE，可能堆积大量的请求导致OOM
+      1. FixedThreadPool和SingleThreadExecutor：使用无界队列，允许队列长度为Integer_MAX_VALUE，可能堆积大量的请求导致OOM
       2. CachedThreadlocal和ScheduledThreadPool：允许创建的线程数量为Integer_MAX_VALUE，可能会创建大量线程，导致OOM
    2. 通过构造方法创建
    3. 通过Executor框架的工具栏Executors
@@ -691,3 +697,17 @@ threadlocal代替session存储用户信息，空间换时间，避免将sesion�
          2. ThreadPoolExecutor.CallerRunsPolicy：调用执行自己的线程运行任务，也就是直接在调用execute方法的线程中运行(run)被拒绝的任务，如果执行程序已关闭，则会丢弃该任务。因此这种策略会降低对于新任务提交速度，影响程序的整体性能。
          3. ThreadPoolExecutor.DiscardPolicy：不处理新任务，直接丢弃掉。
          4. ThreadPoolExecutor.DiscardOldestPolicy：此策略将丢弃最早的未处理的任务请求。
+      3. 过程
+         1. 判断核心线程是否已满，未满创建线程
+         2. 已满，判断队列是否已满，未满加入队列
+         3. 已满，核心线程数增大为最大线程数
+         4. 最大线程已满、队列已满，拒绝策略
+
+### Atomic原子类，具有原子性的类
+1. 主要利用 CAS (compare and swap) + volatile 和 native 方法来保证原子操作，从而避免 synchronized 的高开销，执行效率大为提升。
+
+
+### 进程、线程、协程
+1. 进程，独立执行的程序，是资源调度和分配的单位
+2. 线程，资源调度的基本单位
+3. 协程，轻量级用户态的线程，
