@@ -15,7 +15,7 @@
 2. 在运行时获取一个类的所有属性和方法
 3. 获取Class对象方式
    1. 知道具体类，TargetObject.class
-   2. 插入类的全路径，Class.forName("cn.ustc.test")
+   2. 传入类的全路径，Class.forName("cn.ustc.test")
    3. 通过对象实例,  target.getClass()
    4. 通过类加载器传入类路径，ClassLoader.loadClass("cn.ustc.test");
 4. 获取Class后，实例化对象
@@ -106,6 +106,7 @@ Collections.sort(arrayList, new Comparator<Person>() {
 4. 总结1:arrayList扩容机制：
    1. 当容量等于0的情况，根据构造方法改变。无参构造，容量变10；传容量参数构造，当参数为0时，添加1个元素后，容量为1，再正常扩容（参数大于0则容量为当前参数大小）；传列表构造，列表为空时，添加1个元素后，容量变1，正常扩容（列表不为空则容量和传入列表长度相等）。
    2. 当容量大于0时，扩容为当前容量的1.5倍
+   3. Arrays.copyOf(elementData, newCapacity) 
    
 ## set
 特征：无序、不可重复
@@ -150,8 +151,22 @@ Collections.sort(arrayList, new Comparator<Person>() {
    1. 不安全的原因：多线程rehash会导致环形连接死循环
    2. 使用hashtable、使用concurrenthashMap、使用collections将hashMap包装成线程安全的map
 9.  concurrentHashMap与hashtable的异同：都保证线程安全
-   3.  concurrentHashMap（分段锁）：jdk1.8分段数组+链表/红黑树组成；分段锁保证线程安全：jdk1.7对数组分段，每把锁只锁一部分数据，多线程访问不同段的数据；jdk1.8，使用node数组+链表+红黑树，并发控制使用synchronized（悲观锁）和cas（乐观锁）操作
+   3.  concurrentHashMap（分段锁）：jdk1.8分段数组+链表/红黑树组成；分段锁保证线程安全：jdk1.7对数组分段，每把锁只锁一部分数据，多线程访问不同段的数据；jdk1.8，使用node数组+链表+红黑树，并发控制使用synchronized（悲观锁）和cas（乐观锁）操作。Segment 数组 + HashEntry 数组 + 链表
    4.  hashtable（全表锁）：数组+链表组成，使用synchronized保证线程安全
+
+
+## 并发容器
+1. concurrentHashMap
+   1. 1.7是segment数组+HashEntry数组+链表。segment不能扩容，默认16个，表示最多16个线程并发
+   2. 1.8是Node数组+链表/红黑树 
+      1. 通过自旋和CAS初始化
+2. CopyOnWriteArrayList : 线程安全的 List，在读多写少的场合性能非常好，远远好于 Vector。
+3. ConcurrentLinkedQueue : 高效的并发队列，使用链表实现。可以看做一个线程安全的 LinkedList，这是一个非阻塞队列。
+4. BlockingQueue : 这是一个接口，JDK 内部通过链表、数组等方式实现了这个接口。表示阻塞队列，非常适合用于作为数据共享的通道。
+5. ConcurrentSkipListMap 
+
+
+
 
 ## 错误机制
 1. fail-fast机制
